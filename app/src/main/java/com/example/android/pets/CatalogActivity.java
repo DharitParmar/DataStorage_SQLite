@@ -19,6 +19,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -35,10 +36,6 @@ import com.example.android.pets.data.PetDbHelper;
  */
 public class CatalogActivity extends AppCompatActivity {
 
-    // To access our database, we instantiate our subclass of SQLiteOpenHelper
-    // and pass the context, which is the current activity.
-   private PetDbHelper mDbHelper;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +51,6 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
-        mDbHelper = new PetDbHelper(this);
     }
 
     @Override
@@ -64,11 +60,6 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     private void displayDatabaseInfo() {
-        //PetDbHelper mDbHelper = new PetDbHelper(this);
-
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
         // Define a projection that specifies which columns to use later in the query()
         String[] projection = {
                 PetEntry._ID,
@@ -78,15 +69,11 @@ public class CatalogActivity extends AppCompatActivity {
                 PetEntry.COLUMN_PET_WEIGHT
         };
 
-        Cursor cursor = db.query(
-                PetEntry.TABLE_NAME,
+        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI,
                 projection,
                 null,
                 null,
-                null,
-                null,
-                null
-        );
+                null);
 
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
 
@@ -126,11 +113,6 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     private void insertPet(){
-        //PetDbHelper mDbHelper = new PetDbHelper(this);
-
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
         // Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_PET_BREED, "Terrier");
@@ -138,8 +120,8 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_GENDER, "Male");
         values.put(PetEntry.COLUMN_PET_WEIGHT, "7Kg");
 
-        // insert the new raw into database using that returning the primary key value of the new raw
-        Long rawID = db.insert(PetEntry.TABLE_NAME, null, values);
+        // insert the new values into database using content resolver insert() method
+        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
     }
 
     @Override

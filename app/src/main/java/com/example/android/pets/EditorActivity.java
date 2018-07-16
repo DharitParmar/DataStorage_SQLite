@@ -18,6 +18,7 @@ package com.example.android.pets;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -117,32 +118,33 @@ public class EditorActivity extends AppCompatActivity {
     }
 
     private void insertPet(){
-        // get all relevant values from corresponding views
+        // Read from input fields
+        // Use trim to eliminate leading or trailing white space
         String nameString = mNameEditText.getText().toString().trim();
         String breedString = mBreedEditText.getText().toString().trim();
         String weightString = mWeightEditText.getText().toString().trim();
         int weight = Integer.parseInt(weightString);
 
-        // create an instance of PetDbHelper class
-        PetDbHelper mDbHelper = new PetDbHelper(this);
-
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        // Create a new map of values, where column names are the keys
+        // Create a ContentValues object where column names are the keys,
+        // and pet attributes from the editor are the values.
         ContentValues values = new ContentValues();
-        values.put(PetEntry.COLUMN_PET_BREED, breedString);
         values.put(PetEntry.COLUMN_PET_NAME, nameString);
+        values.put(PetEntry.COLUMN_PET_BREED, breedString);
         values.put(PetEntry.COLUMN_PET_GENDER, mGender);
         values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
 
-        // insert the new raw into database using that returning the primary key value of the new raw
-        Long rawID = db.insert(PetEntry.TABLE_NAME, null, values);
+        // Insert a new pet into the provider, returning the content URI for the new pet.
+        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
 
-        if(rawID == -1){
-            Toast.makeText(this, "An error saving the data", Toast.LENGTH_SHORT).show();
-        }else{
-            Toast.makeText(this, "Pet info saved sucessfully in datbase!", Toast.LENGTH_SHORT).show();
+        // Show a toast message depending on whether or not the insertion was successful
+        if (newUri == null) {
+            // If the new content URI is null, then there was an error with insertion.
+            Toast.makeText(this, getString(R.string.editor_insert_pet_failed),
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            // Otherwise, the insertion was successful and we can display a toast.
+            Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
